@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pages/splash_screen.dart';
 import 'pages/login_page.dart';
 import 'pages/registration_page.dart';
+import 'pages/home_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,14 +15,15 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.yellow,
         scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
         textTheme: TextTheme(
-          bodyText1: TextStyle(color: Colors.yellow),
-          bodyText2: TextStyle(color: Colors.yellow),
+          bodyText1: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+          bodyText2: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
         ),
       ),
       home: SplashScreen(),
       routes: {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegistrationPage(),
+        '/home': (context) => HomePage(),
       },
     );
   }

@@ -1,6 +1,35 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:driveby/services/api_service.dart'; // Make sure to replace `your_project_name` with your actual project name
 
 class LoginPage extends StatelessWidget {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+
+  void _showDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (title == "Login Successful") {
+                  Navigator.of(context).pushNamed('/home');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -10,104 +39,93 @@ class LoginPage extends StatelessWidget {
         titleTextStyle: TextStyle(color: Colors.black),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      resizeToAvoidBottomInset: false, // This ensures the content moves when the keyboard appears
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Image.asset(
-                  'assets/images/loginpng.png', // Update the path to your image
-                  height: 160, // Adjust the height as needed
-                ),
-                SizedBox(height: 70.0),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/loginpng.png',
+                height: 160,
+              ),
+              SizedBox(height: 70.0),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.grey[300],
+                  labelText: 'Email',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromARGB(255, 214, 214, 214).withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide.none,
-                      ),
-                      fillColor: Colors.grey[300],
-                      filled: true,
-                    ),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                SizedBox(height: 16.0),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
+              ),
+              SizedBox(height: 16.0),
+              TextField(
+                controller: passwordController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.grey[300],
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromARGB(255, 218, 218, 218).withOpacity(0.5),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide.none,
-                      ),
-                      fillColor: Colors.grey[300],
-                      filled: true,
-                    ),
-                    obscureText: true,
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                SizedBox(height: 16.0),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Handle login logic here
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 15.0),
-                    ),
-                    child: Text(
-                      'Login',
-                      style: TextStyle(fontSize: 18.0),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/register');
+                obscureText: true,
+              ),
+              SizedBox(height: 16.0),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final response = await apiService.login(
+                        emailController.text,
+                        passwordController.text,
+                      );
+                      if (response.statusCode == 200) {
+                        final data = jsonDecode(response.body);
+                        final token = data['token'];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Login Successful')),
+                        );
+                        // Store the token securely (e.g., in SharedPreferences)
+                        Navigator.of(context).pushNamed('/home'); // Navigate to the home screen
+                      } else {
+                        _showDialog(context, "Login Failed", "Invalid credentials. Please try again.");
+                      }
+                    } catch (e) {
+                      print('Error: $e');
+                      _showDialog(context, "Connection Failed", "Could not connect to server. Please try again later.");
+                    }
                   },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.yellow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                  ),
                   child: Text(
-                    'Don\'t have an account? Register',
-                    style: TextStyle(color: Colors.yellow),
+                    'Login',
+                    style: TextStyle(fontSize: 18.0),
                   ),
                 ),
-              ],
-            ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/register');
+                },
+                child: Text(
+                  'Don\'t have an account? Register',
+                  style: TextStyle(color: Colors.yellow),
+                ),
+              ),
+            ],
           ),
         ),
       ),

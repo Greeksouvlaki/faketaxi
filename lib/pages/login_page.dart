@@ -7,6 +7,8 @@ class LoginPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final ApiService apiService = ApiService();
 
+  LoginPage({super.key});
+
   void _showDialog(BuildContext context, String title, String content) {
     showDialog(
       context: context,
@@ -16,7 +18,7 @@ class LoginPage extends StatelessWidget {
           content: Text(content),
           actions: <Widget>[
             TextButton(
-              child: Text("OK"),
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
                 if (title == "Login Successful") {
@@ -34,14 +36,14 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
         backgroundColor: Colors.white,
-        titleTextStyle: TextStyle(color: Colors.black),
-        iconTheme: IconThemeData(color: Colors.black),
+        titleTextStyle: const TextStyle(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -49,7 +51,7 @@ class LoginPage extends StatelessWidget {
                 'assets/images/loginpng.png',
                 height: 160,
               ),
-              SizedBox(height: 70.0),
+              const SizedBox(height: 70.0),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -62,7 +64,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: passwordController,
                 decoration: InputDecoration(
@@ -76,7 +78,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -90,7 +92,7 @@ class LoginPage extends StatelessWidget {
                         final data = jsonDecode(response.body);
                         final token = data['token'];
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Login Successful')),
+                          const SnackBar(content: Text('Login Successful')),
                         );
                         // Store the token securely (e.g., in SharedPreferences)
                         Navigator.of(context).pushNamed('/home'); // Navigate to the home screen
@@ -108,9 +110,9 @@ class LoginPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Login',
                     style: TextStyle(fontSize: 18.0),
                   ),
@@ -120,7 +122,7 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pushNamed('/register');
                 },
-                child: Text(
+                child: const Text(
                   'Don\'t have an account? Register',
                   style: TextStyle(color: Colors.yellow),
                 ),

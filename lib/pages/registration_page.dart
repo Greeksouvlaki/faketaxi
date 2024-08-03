@@ -7,6 +7,8 @@ class RegistrationPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final ApiService apiService = ApiService();
 
+  RegistrationPage({super.key});
+
   void _showDialog(BuildContext context, String title, String content) {
     showDialog(
       context: context,
@@ -16,7 +18,7 @@ class RegistrationPage extends StatelessWidget {
           content: Text(content),
           actions: <Widget>[
             TextButton(
-              child: Text("OK"),
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
                 if (title == "Registration Successful") {
@@ -34,14 +36,14 @@ class RegistrationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: const Text('Register'),
         backgroundColor: Colors.white,
-        titleTextStyle: TextStyle(color: Colors.black),
-        iconTheme: IconThemeData(color: Colors.black),
+        titleTextStyle: const TextStyle(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -56,7 +58,7 @@ class RegistrationPage extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -68,7 +70,7 @@ class RegistrationPage extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: passwordController,
                 decoration: InputDecoration(
@@ -81,7 +83,7 @@ class RegistrationPage extends StatelessWidget {
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -103,9 +105,9 @@ class RegistrationPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Register',
                     style: TextStyle(fontSize: 18.0),
                   ),

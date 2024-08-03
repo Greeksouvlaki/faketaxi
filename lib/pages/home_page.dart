@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -28,7 +30,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: CircleAvatar(
+              icon: const CircleAvatar(
                 backgroundColor: Colors.grey,
                 child: Icon(Icons.person, color: Colors.white),
               ),
@@ -47,7 +49,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.yellow[700],
                 borderRadius: BorderRadius.circular(10.0),
@@ -55,11 +57,11 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Enjoy your next trip',
                     style: TextStyle(color: Colors.white, fontSize: 16.0),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pushNamed('/book');
@@ -67,12 +69,12 @@ class HomePage extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.black, backgroundColor: Colors.white,
                     ),
-                    child: Text('Book now'),
+                    child: const Text('Book now'),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -83,7 +85,7 @@ class HomePage extends StatelessWidget {
                     route: '/book',
                   ),
                 ),
-                SizedBox(width: 16), // Add space between the buttons
+                const SizedBox(width: 16), // Add space between the buttons
                 Expanded(
                   child: _buildOptionButton(
                     context,
@@ -94,9 +96,9 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildSearchBar(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildShortcutButton('Home', 'Set home address'),
             _buildShortcutButton('Work', 'Set work address'),
           ],
@@ -111,7 +113,7 @@ class HomePage extends StatelessWidget {
         Navigator.of(context).pushNamed(route);
       },
       child: Container(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(10.0),
@@ -119,8 +121,8 @@ class HomePage extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, size: 30, color: Colors.black),
-            SizedBox(height: 10),
-            Text(label, style: TextStyle(color: Colors.black)),
+            const SizedBox(height: 10),
+            Text(label, style: const TextStyle(color: Colors.black)),
           ],
         ),
       ),
@@ -131,7 +133,7 @@ class HomePage extends StatelessWidget {
     return TextField(
       decoration: InputDecoration(
         hintText: 'Where are you going?',
-        prefixIcon: Icon(Icons.circle, color: Colors.yellow),
+        prefixIcon: const Icon(Icons.circle, color: Colors.yellow),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10.0),
           borderSide: BorderSide.none,
@@ -144,7 +146,7 @@ class HomePage extends StatelessWidget {
 
   Widget _buildShortcutButton(String title, String subtitle) {
     return ListTile(
-      leading: Icon(Icons.home, color: Colors.black),
+      leading: const Icon(Icons.home, color: Colors.black),
       title: Text(title),
       subtitle: Text(subtitle),
       onTap: () {

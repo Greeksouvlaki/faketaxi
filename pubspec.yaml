@@ -12,11 +12,12 @@ dependencies:
   flutter:
     sdk: flutter
   lottie: ^2.0.0
-  http: ^1.2.2
+  http: ^0.13.5
+  flutter_google_places: ^0.3.0
   cupertino_icons: ^1.0.6
-  dio: ^5.5.0
-  flutter_polyline_points: ^2.1.0
-  google_maps_flutter: ^2.7.1
+  google_maps_flutter: ^2.2.1
+  google_maps_webservice: ^0.0.20-nullsafety.5
+  geolocator: ^9.0.1
 
 dev_dependencies:
   flutter_test:

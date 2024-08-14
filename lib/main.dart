@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.yellow,
         scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
         textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+           bodyLarge: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
           bodyMedium: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
         ),
       ),

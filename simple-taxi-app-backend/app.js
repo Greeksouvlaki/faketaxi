@@ -26,6 +26,12 @@ db.connect(err => {
   console.log('Connected to MySQL');
 });
 
+// Root route
+// Root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the API');
+});
+
 // Register endpoint
 app.post('/api/users/register', (req, res) => {
   const { username, email, password } = req.body;

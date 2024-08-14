@@ -1,1 +1,12 @@
-openrouteserviceApi: 5b3ce3597851110001cf62483134a690bb164ad3b784a9c671de1eb8
+openrouteserviceApi: 5b3ce3597851110001cf62483134a690bb164ad3b784a9c671de1eb8k.ey
+maboxApi: pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ
+
+TileLayer(
+  urlTemplate: 'mapbox://styles/greeksouvlaki/clzu9toa600hr01pifneiec8p',
+  additionalOptions: {
+    'accessToken': 'YOUR_MAPBOX_TOKEN',
+  },
+  subdomains: ['a', 'b', 'c'],
+),
+
+mapbox://styles/greeksouvlaki/clzu9toa600hr01pifneiec8p

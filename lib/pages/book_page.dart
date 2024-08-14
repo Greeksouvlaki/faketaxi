@@ -1,10 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/places.dart';
-
-const kGoogleApiKey = "AIzaSyBWISO8sQUmKlpgGxHa4G7WQTkEFfdUiVM";
-final places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 class BookPage extends StatefulWidget {
   @override
@@ -12,10 +10,11 @@ class BookPage extends StatefulWidget {
 }
 
 class _BookPageState extends State<BookPage> {
-  TextEditingController _pickupController = TextEditingController();
-  TextEditingController _destinationController = TextEditingController();
+  final MapController _mapController = MapController();
   LatLng? _pickupLocation;
   LatLng? _destinationLocation;
+  double _distance = 0.0;
+  List<LatLng> _routePoints = [];
 
   @override
   Widget build(BuildContext context) {
@@ -26,129 +25,145 @@ class _BookPageState extends State<BookPage> {
         titleTextStyle: TextStyle(color: Colors.black),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildLocationSearchField(
-              controller: _pickupController,
-              label: 'Pickup Location',
-              onSelected: (LatLng location) {
-                setState(() {
-                  _pickupLocation = location;
-                });
-              },
-            ),
-            SizedBox(height: 8.0),
-            _buildLocationSearchField(
-              controller: _destinationController,
-              label: 'Destination',
-              onSelected: (LatLng location) {
-                setState(() {
-                  _destinationLocation = location;
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                if (_pickupLocation != null && _destinationLocation != null) {
-                  Navigator.of(context).pushNamed(
-                    '/navigation',
-                    arguments: {
-                      'pickup': _pickupController.text,
-                      'destination': _destinationController.text,
-                    },
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black, backgroundColor: Colors.yellow,
+      body: Column(
+        children: [
+          Expanded(
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: LatLng(37.9838, 23.7275), // Athens, Greece
+                initialZoom: 13.0,
+                onTap: (tapPosition, latLng) => _handleTap(latLng),
               ),
-              child: Text('Request a Ride'),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  subdomains: ['a', 'b', 'c'],
+                ),
+                MarkerLayer(
+                  markers: _buildMarkers(),
+                ),
+                if (_routePoints.isNotEmpty)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _routePoints,
+                        color: Colors.blue,
+                        strokeWidth: 4.0,
+                      ),
+                    ],
+                  ),
+              ],
             ),
-            SizedBox(height: 16.0),
-            _buildPopularDestinations(),
-            _buildHistory(),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  'Distance: ${_distance.toStringAsFixed(2)} km',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: (_pickupLocation != null && _destinationLocation != null)
+                      ? () {
+                          Navigator.of(context).pushNamed(
+                            '/navigation',
+                            arguments: {
+                              'pickup': _pickupLocation,
+                              'destination': _destinationLocation,
+                            },
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: Text('Request a Ride'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLocationSearchField({
-    required TextEditingController controller,
-    required String label,
-    required Function(LatLng) onSelected,
-  }) {
-    return TextField(
-      controller: controller,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-      ),
-      onTap: () async {
-        Prediction? p = await PlacesAutocomplete.show(
-          context: context,
-          apiKey: kGoogleApiKey,
-          mode: Mode.overlay,
-          language: "en",
-        );
-        if (p != null) {
-          PlacesDetailsResponse detail = await places.getDetailsByPlaceId(p.placeId!);
-          final lat = detail.result.geometry!.location.lat;
-          final lng = detail.result.geometry!.location.lng;
-          controller.text = p.description!;
-          onSelected(LatLng(lat, lng));
-        }
-      },
-    );
+  void _handleTap(LatLng latLng) {
+    setState(() {
+      if (_pickupLocation == null) {
+        _pickupLocation = latLng;
+      } else if (_destinationLocation == null) {
+        _destinationLocation = latLng;
+        _calculateDistance();
+        _fetchRoute();
+      } else {
+        _pickupLocation = latLng;
+        _destinationLocation = null;
+        _distance = 0.0;
+        _routePoints.clear();
+      }
+    });
   }
 
-  Widget _buildPopularDestinations() {
-    final destinations = ['Airport', 'Central Station', 'City Center', 'Hotel', 'Restaurant'];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Popular Destinations', style: TextStyle(fontWeight: FontWeight.bold)),
-        SizedBox(height: 8.0),
-        Wrap(
-          spacing: 8.0,
-          children: destinations.map((destination) {
-            return Chip(
-              label: Text(destination),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              onDeleted: () {},
-            );
-          }).toList(),
+  List<Marker> _buildMarkers() {
+    List<Marker> markers = [];
+    if (_pickupLocation != null) {
+      markers.add(
+        Marker(
+          point: _pickupLocation!,
+          width: 80.0,
+          height: 80.0,
+          child: const Icon(Icons.location_on, color: Colors.green),
         ),
-      ],
-    );
+      );
+    }
+    if (_destinationLocation != null) {
+      markers.add(
+        Marker(
+          point: _destinationLocation!,
+          width: 80.0,
+          height: 80.0,
+          child: const Icon(Icons.location_on, color: Colors.red),
+        ),
+      );
+    }
+    return markers;
   }
 
-  Widget _buildHistory() {
-    final history = ['Home', 'Work', 'Gym', 'Supermarket'];
+  void _calculateDistance() {
+    final Distance distance = Distance();
+    setState(() {
+      _distance = distance.as(
+        LengthUnit.Kilometer,
+        _pickupLocation!,
+        _destinationLocation!,
+      );
+    });
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Recent Locations', style: TextStyle(fontWeight: FontWeight.bold)),
-        SizedBox(height: 8.0),
-        Column(
-          children: history.map((location) {
-            return ListTile(
-              title: Text(location),
-              onTap: () {
-                // Implement history selection
-              },
-            );
-          }).toList(),
-        ),
-      ],
-    );
+  Future<void> _fetchRoute() async {
+    if (_pickupLocation != null && _destinationLocation != null) {
+      final apiKey = '5b3ce3597851110001cf62483134a690bb164ad3b784a9c671de1eb8'; // Replace with your OpenRouteService API key
+      final url = Uri.parse(
+          'https://api.openrouteservice.org/v2/directions/driving-car?api_key=$apiKey&start=${_pickupLocation!.longitude},${_pickupLocation!.latitude}&end=${_destinationLocation!.longitude},${_destinationLocation!.latitude}');
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> geometry = data['features'][0]['geometry']['coordinates'];
+
+        setState(() {
+          _routePoints = geometry
+              .map((point) => LatLng(point[1], point[0]))
+              .toList();
+        });
+      } else {
+        print('Failed to fetch route');
+      }
+    }
   }
 }

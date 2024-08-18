@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
-import 'package:driveby/models/ride.dart'; // Import the Ride model
+import 'package:driveby/models/ride.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,6 +9,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // This removes the back arrow
         title: Row(
           children: [
             const Expanded(
@@ -105,7 +106,7 @@ class HomePage extends StatelessWidget {
             _buildShortcutButton('Home', 'Set home address'),
             _buildShortcutButton('Work', 'Set work address'),
             const SizedBox(height: 20),
-            _buildRideHistorySection(), // Add ride history section here
+            _buildRideHistorySection(),
           ],
         ),
       ),
@@ -161,7 +162,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildRideHistorySection() {
-    ApiService apiService = ApiService(); // Create an instance of ApiService
+    ApiService apiService = ApiService();
 
     return FutureBuilder<List<Ride>>(
       future: apiService.getRideHistory(1, 'Passenger'), // Example user ID and role

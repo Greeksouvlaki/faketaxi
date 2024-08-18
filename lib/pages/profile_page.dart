@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
 import 'package:driveby/models/users.dart';
+import 'package:driveby/pages/EditProfilePage.dart';
+import 'package:driveby/pages/ChangePasswordPage.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -63,7 +65,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ListTile(
                   leading: Icon(Icons.edit),
                   title: Text('Edit Profile'),
-                  onTap: () {
+                  onTap: () async{
+                    User user = await _profile;
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditProfilePage(user: user)));
                     // Handle profile editing
                   },
                 ),
@@ -71,6 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: Icon(Icons.lock),
                   title: Text('Change Password'),
                   onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChangePasswordPage(userId: userId)));
                     // Handle password change
                   },
                 ),
@@ -78,6 +83,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: Icon(Icons.logout),
                   title: Text('Logout'),
                   onTap: () {
+                    // Clear any user data and navigate to login page
+                    Navigator.of(context).pushNamed('/login');
                     // Handle logout
                   },
                 ),

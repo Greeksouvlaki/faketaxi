@@ -29,156 +29,169 @@ class _BookPageState extends State<BookPage> {
         titleTextStyle: TextStyle(color: Colors.black),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Container for the large rounded box
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Starting Location
-                      Row(
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.yellow,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _startController,
-                              decoration: InputDecoration(
-                                hintText: 'Enter starting location',
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (value) {
-                                _onSearch(value, true);
-                              },
-                            ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Container for the search boxes
+                    Container(
+                      padding: const EdgeInsets.all(8.0), // Reduced padding
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3),
                           ),
                         ],
                       ),
-                      Divider(),
-                      // Destination Location
-                      Row(
+                      child: Column(
                         children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _destinationController,
-                              decoration: InputDecoration(
-                                hintText: 'Enter destination',
-                                border: InputBorder.none,
+                          // Starting Location
+                          Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.yellow,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                              onChanged: (value) {
-                                _onSearch(value, false);
-                              },
-                            ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: _startController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter starting location',
+                                    border: InputBorder.none,
+                                  ),
+                                  onChanged: (value) {
+                                    _onSearch(value, true);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(height: 1), // Reduced height
+                          // Destination Location
+                          Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: _destinationController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter destination',
+                                    border: InputBorder.none,
+                                  ),
+                                  onChanged: (value) {
+                                    _onSearch(value, false);
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (_searchResults.isNotEmpty)
-                  Container(
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final result = _searchResults[index];
-                        return ListTile(
-                          title: Text(result['display_name']),
-                          onTap: () {
-                            _onLocationSelected(result['lat'], result['lon']);
-                          },
-                        );
-                      },
                     ),
-                  ),
-                const SizedBox(height: 10),
-                Text(
-                  'Distance: ${_distance.toStringAsFixed(2)} km',
-                  style: TextStyle(fontSize: 16.0),
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: (_pickupLocation != null && _destinationLocation != null)
-                      ? () {
-                          Navigator.of(context).pushNamed(
-                            '/navigation',
-                            arguments: {
-                              'pickup': _pickupLocation,
-                              'destination': _destinationLocation,
-                            },
-                          );
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow,
-                    foregroundColor: Colors.black,
-                  ),
-                  child: Text('Request a Ride'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: LatLng(37.9838, 23.7275), // Athens, Greece
-                initialZoom: 13.0,
-                onTap: (tapPosition, latLng) => _handleTap(latLng),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: ['a', 'b', 'c'],
-                ),
-                MarkerLayer(
-                  markers: _buildMarkers(),
-                ),
-                if (_routePoints.isNotEmpty)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: _routePoints,
-                        color: Colors.blue,
-                        strokeWidth: 4.0,
+                    const SizedBox(height: 10),
+                    if (_searchResults.isNotEmpty)
+                      Container(
+                        height: 200,
+                        child: ListView.builder(
+                          itemCount: _searchResults.length,
+                          itemBuilder: (context, index) {
+                            final result = _searchResults[index];
+                            return ListTile(
+                              title: Text(result['display_name']),
+                              onTap: () {
+                                _onLocationSelected(result['lat'], result['lon']);
+                              },
+                            );
+                          },
+                        ),
                       ),
-                    ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'Distance: ${_distance.toStringAsFixed(2)} km',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: LatLng(37.9838, 23.7275), // Athens, Greece
+                    initialZoom: 13.0,
+                    onTap: (tapPosition, latLng) => _handleTap(latLng),
                   ),
-              ],
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      subdomains: ['a', 'b', 'c'],
+                    ),
+                    MarkerLayer(
+                      markers: _buildMarkers(),
+                    ),
+                    if (_routePoints.isNotEmpty)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _routePoints,
+                            color: Colors.blue,
+                            strokeWidth: 4.0,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 20, // Positioning the button at the bottom
+            left: 16,
+            right: 16,
+            child: ElevatedButton(
+              onPressed: (_pickupLocation != null && _destinationLocation != null)
+                  ? () {
+                      Navigator.of(context).pushNamed(
+                        '/navigation',
+                        arguments: {
+                          'pickup': _pickupLocation,
+                          'destination': _destinationLocation,
+                        },
+                      );
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.yellow,
+                foregroundColor: Colors.black,
+                padding: EdgeInsets.symmetric(vertical: 15.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                minimumSize: Size(double.infinity, 50), // Make it full width
+              ),
+              child: Text('Request a Ride', style: TextStyle(fontSize: 18)),
             ),
           ),
         ],

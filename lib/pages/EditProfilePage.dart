@@ -19,8 +19,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _name = widget.user.name!;
-    _email = widget.user.email!;
+    _name = widget.user.name ?? '';
+    _email = widget.user.email ?? '';
   }
 
   Future<void> _saveProfile() async {
@@ -30,14 +30,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
         userId: widget.user.userId,
         name: _name,
         email: _email,
-        role: widget.user.role,
+        role: widget.user.role, // Keep the role unchanged
       );
 
       try {
         await ApiService().updateProfile(updatedUser);
-        Navigator.pop(context);
+        Navigator.pop(context, updatedUser); // Pass the updated user back
       } catch (e) {
-        print('Failed to update profile: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $e')),
+        );
       }
     }
   }

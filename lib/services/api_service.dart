@@ -36,6 +36,9 @@ class ApiService {
   Future<http.Response> login(String email, String password) async {
   final url = Uri.parse('$_baseUrl/users/login');
   try {
+    // Debugging: Log the email and password
+    print('Attempting login with email: "$email" and password: "$password"');
+
     final response = await http.post(
       url,
       headers: {
@@ -47,6 +50,10 @@ class ApiService {
       }),
     );
 
+    // Log the response status and body
+    print('Response Status: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
     if (response.statusCode == 200) {
       return response;
     } else {
@@ -56,6 +63,8 @@ class ApiService {
     print('Error: $e');
     rethrow;
   }
+}
+
 }
 
 
@@ -94,21 +103,28 @@ class ApiService {
 
   // Method to update user profile data
   Future<void> updateProfile(User user) async {
-    final url = Uri.parse('$_baseUrl/users/profile/update');
-    try {
-      final response = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(user.toJson()),
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Failed to update profile');
-      }
-    } catch (e) {
-      print('Error: $e');
-      rethrow;
+  final url = Uri.parse('$_baseUrl/users/profile/update');
+  try {
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(user.toJson()),
+    );
+
+    print('Request URL: $url');
+    print('Request Body: ${jsonEncode(user.toJson())}');
+    print('Response Status: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update profile');
     }
+  } catch (e) {
+    print('Error: $e');
+    rethrow;
   }
+}
+
 
   // Method to change the user's password
   Future<void> changePassword(int userId, String oldPassword, String newPassword) async {

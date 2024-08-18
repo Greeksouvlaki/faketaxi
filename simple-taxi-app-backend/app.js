@@ -51,6 +51,8 @@ app.post('/api/users/register', (req, res) => {
 app.post('/api/users/login', (req, res) => {
   const { email, password } = req.body;
 
+  console.log('Login attempt:', email, password);
+
   const query = 'SELECT * FROM Users WHERE email = ?';
   db.query(query, [email], (err, results) => {
     if (err) {
@@ -58,20 +60,26 @@ app.post('/api/users/login', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     if (results.length === 0) {
+      console.log('User not found');
       return res.status(400).json({ message: 'User not found' });
     }
 
     const user = results[0];
-    const isMatch = bcrypt.compareSync(password, user.password);
+    console.log('User found:', user);
+
+    const isMatch = bcrypt.compareSync(password, user.password);  // Compare hashed password
+    console.log('Password match:', isMatch);
 
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token, user_id: user.user_id }); // Return user_id along with the token
+    res.json({ token, user_id: user.user_id });
   });
 });
+
+
 
 
 const PORT = process.env.PORT || 3000;
@@ -139,5 +147,34 @@ app.get('/api/users/profile', (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(results[0]); // Return the first result (there should only be one)
+  });
+});
+
+// Update Profile Endpoint
+app.put('/api/users/profile/update', (req, res) => {
+  const { user_id, username, email, role } = req.body;
+
+  // Check if all required fields are present
+  if (!user_id || !username || !email) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the user's profile
+  const query = 'UPDATE Users SET username = ?, email = ?, role = ? WHERE user_id = ?';
+
+  // Execute the query with the provided data
+  db.query(query, [username, email, role, user_id], (err, result) => {
+    if (err) {
+      console.error('Error updating profile:', err);
+      return res.status(500).json({ error: 'Failed to update profile' });
+    }
+
+    // Check if any rows were affected (i.e., updated)
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Return a success message if the update was successful
+    res.status(200).json({ message: 'Profile updated successfully' });
   });
 });

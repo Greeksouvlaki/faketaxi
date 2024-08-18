@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:driveby/services/api_service.dart';
+import 'package:driveby/models/ride.dart'; // Import the Ride model
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -16,14 +18,14 @@ class HomePage extends StatelessWidget {
                   Text(
                     'Hi!',
                     style: TextStyle(
-                      fontSize: 14.0, // Smaller "Hi!" text
+                      fontSize: 14.0,
                     ),
                   ),
                   Text(
                     'Welcome back!',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 24.0, // Bigger "Welcome back!" text
+                      fontSize: 24.0,
                     ),
                   ),
                 ],
@@ -67,7 +69,8 @@ class HomePage extends StatelessWidget {
                       Navigator.of(context).pushNamed('/book');
                     },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black, backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.white,
                     ),
                     child: const Text('Book now'),
                   ),
@@ -85,7 +88,7 @@ class HomePage extends StatelessWidget {
                     route: '/book',
                   ),
                 ),
-                const SizedBox(width: 16), // Add space between the buttons
+                const SizedBox(width: 16),
                 Expanded(
                   child: _buildOptionButton(
                     context,
@@ -101,6 +104,8 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildShortcutButton('Home', 'Set home address'),
             _buildShortcutButton('Work', 'Set work address'),
+            const SizedBox(height: 20),
+            _buildRideHistorySection(), // Add ride history section here
           ],
         ),
       ),
@@ -151,6 +156,50 @@ class HomePage extends StatelessWidget {
       subtitle: Text(subtitle),
       onTap: () {
         // Handle shortcut tap
+      },
+    );
+  }
+
+  Widget _buildRideHistorySection() {
+    ApiService apiService = ApiService(); // Create an instance of ApiService
+
+    return FutureBuilder<List<Ride>>(
+      future: apiService.getRideHistory(1, 'Passenger'), // Example user ID and role
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No recent rides found'));
+        }
+
+        List<Ride> rideHistory = snapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Recent Rides',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+            ),
+            const SizedBox(height: 10),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: rideHistory.length,
+              itemBuilder: (context, index) {
+                final ride = rideHistory[index];
+                return ListTile(
+                  title: Text('${ride.startLocation} to ${ride.endLocation}'),
+                  subtitle: Text('Cost: \$${ride.cost} | ${ride.status}'),
+                  onTap: () {
+                    // Navigate to detailed view if needed
+                  },
+                );
+              },
+            ),
+          ],
+        );
       },
     );
   }

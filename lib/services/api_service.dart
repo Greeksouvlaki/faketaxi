@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:driveby/models/ride.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String _baseUrl = 'http://172.25.191.18:3000/api';
+  static const String _baseUrl = 'http://172.18.28.244:3000/api';
 
   Future<http.Response> register(String username, String email, String password) async {
     final url = Uri.parse('$_baseUrl/users/register');
@@ -46,6 +47,23 @@ class ApiService {
         return response;
       } else {
         throw Exception('Failed to login');
+      }
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
+    }
+  }
+
+  // New method to fetch ride history
+  Future<List<Ride>> getRideHistory(int userId, String role) async {
+    final url = Uri.parse('$_baseUrl/rides/history?userId=$userId&role=$role');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Ride.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load ride history');
       }
     } catch (e) {
       print('Error: $e');

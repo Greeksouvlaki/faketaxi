@@ -65,8 +65,6 @@ class ApiService {
   }
 }
 
-}
-
 
   // Method to fetch ride history
   Future<List<Ride>> getRideHistory(int userId, String role) async {

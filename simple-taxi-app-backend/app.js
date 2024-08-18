@@ -68,10 +68,11 @@ app.post('/api/users/login', (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
+    const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user_id: user.user_id }); // Return user_id along with the token
   });
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
@@ -121,5 +122,22 @@ app.post('/api/reviews', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.json({ id: result.insertId, message: 'Review submitted successfully' });
+  });
+});
+
+// Fetch user profile
+app.get('/api/users/profile', (req, res) => {
+  const userId = req.query.userId;
+
+  const query = 'SELECT user_id, username, email, role FROM Users WHERE user_id = ?';
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching user profile:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(results[0]); // Return the first result (there should only be one)
   });
 });

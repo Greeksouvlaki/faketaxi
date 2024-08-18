@@ -5,6 +5,7 @@ import 'pages/registration_page.dart';
 import 'pages/home_page.dart';
 import 'pages/book_page.dart';
 import 'pages/navigation_page.dart';
+import 'pages/profile_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(),
         '/book': (context) => BookPage(),
         '/navigation': (context) => NavigationPage(),
+        '/profile': (context) => ProfilePage(),
       },
     );
   }

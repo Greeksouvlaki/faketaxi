@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:driveby/services/api_service.dart'; // Make sure to replace `your_project_name` with your actual project name
+import 'package:driveby/services/api_service.dart';
 
-class RegistrationPage extends StatelessWidget {
+class RegistrationPage extends StatefulWidget {
+  @override
+  _RegistrationPageState createState() => _RegistrationPageState();
+}
+
+class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController vehicleTypeController = TextEditingController();
+  final TextEditingController licensePlateController = TextEditingController();
   final ApiService apiService = ApiService();
 
-  RegistrationPage({super.key});
+  bool isDriver = false; // Track whether the user is registering as a driver
 
   void _showDialog(BuildContext context, String title, String content) {
     showDialog(
@@ -84,15 +91,59 @@ class RegistrationPage extends StatelessWidget {
                 obscureText: true,
               ),
               const SizedBox(height: 16.0),
+              SwitchListTile(
+                title: const Text("Register as a Driver"),
+                value: isDriver,
+                onChanged: (bool value) {
+                  setState(() {
+                    isDriver = value;
+                  });
+                },
+              ),
+              if (isDriver) ...[
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: vehicleTypeController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[300],
+                    labelText: 'Vehicle Type',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: licensePlateController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[300],
+                    labelText: 'License Plate',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16.0),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final response = await apiService.register(
-                      usernameController.text,
-                      emailController.text,
-                      passwordController.text,
-                    );
+                    final response = isDriver
+                        ? await apiService.registerDriver(
+                            usernameController.text,
+                            emailController.text,
+                            passwordController.text,
+                            vehicleTypeController.text,
+                            licensePlateController.text,
+                          )
+                        : await apiService.register(
+                            usernameController.text,
+                            emailController.text,
+                            passwordController.text,
+                          );
                     if (response.statusCode == 200) {
                       _showDialog(context, "Registration Successful", "You have successfully registered.");
                     } else {

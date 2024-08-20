@@ -178,3 +178,161 @@ app.put('/api/users/profile/update', (req, res) => {
     res.status(200).json({ message: 'Profile updated successfully' });
   });
 });
+
+// Update Driver Registration Endpoint
+app.post('/api/drivers/register', (req, res) => {
+  const { username, email, password, vehicle_type, vehicle_registration_number } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  const queryUser = 'INSERT INTO Users (username, email, password, role) VALUES (?, ?, ?, ?)';
+  db.query(queryUser, [username, email, hashedPassword, 'driver'], (err, result) => {
+    if (err) {
+      console.error('Error inserting user:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    const userId = result.insertId;
+    const queryDriver = 'INSERT INTO Drivers (user_id, vehicle_type, vehicle_registration_number, availability_status) VALUES (?, ?, ?, ?)';
+    db.query(queryDriver, [userId, vehicle_type, vehicle_registration_number, 'available'], (err) => {
+      if (err) {
+        console.error('Error inserting driver:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      const token = jwt.sign({ user_id: userId, role: 'driver' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      res.status(201).json({ token, message: 'Driver registered successfully.' });
+    });
+  });
+});
+
+//Driver Login Endpoint
+app.post('/api/drivers/login', (req, res) => {
+  const { email, password } = req.body;
+  const query = 'SELECT * FROM Users WHERE email = ? AND role = "driver"';
+  
+  db.query(query, [email], (err, results) => {
+    if (err) {
+      console.error('Error fetching driver:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(400).json({ message: 'Driver not found' });
+    }
+    
+    const user = results[0];
+    const isMatch = bcrypt.compareSync(password, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ user_id: user.user_id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user_id: user.user_id });
+  });
+});
+
+//Fetch available Ride Requests
+app.get('/api/drivers/ride-requests', (req, res) => {
+  const query = `
+    SELECT RideRequests.*, Users.username AS passenger_name 
+    FROM RideRequests 
+    JOIN Users ON RideRequests.passenger_id = Users.user_id 
+    WHERE RideRequests.status = 'pending'
+  `;
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching ride requests:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+//Accept Ride Request
+app.post('/api/drivers/ride-requests/:request_id/accept', (req, res) => {
+  const driverId = req.body.driver_id;
+  const requestId = req.params.request_id;
+
+  const query = 'UPDATE RideRequests SET driver_id = ?, status = "accepted" WHERE request_id = ? AND status = "pending"';
+  db.query(query, [driverId, requestId], (err, result) => {
+    if (err) {
+      console.error('Error accepting ride request:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: 'Ride request not available or already accepted' });
+    }
+
+    res.status(200).json({ message: 'Ride request accepted successfully' });
+  });
+});
+
+//Update Ride Status
+app.put('/api/drivers/rides/:ride_id/status', (req, res) => {
+  const { status } = req.body;
+  const rideId = req.params.ride_id;
+
+  const query = 'UPDATE Rides SET status = ? WHERE ride_id = ?';
+  db.query(query, [status, rideId], (err) => {
+    if (err) {
+      console.error('Error updating ride status:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(200).json({ message: 'Ride status updated successfully' });
+  });
+});
+
+// Driver Registration Endpoint
+// Update Driver Registration Endpoint
+app.post('/api/drivers/register', (req, res) => {
+  const { username, email, password, vehicle_type, vehicle_registration_number } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  const queryUser = 'INSERT INTO Users (username, email, password, role) VALUES (?, ?, ?, ?)';
+  db.query(queryUser, [username, email, hashedPassword, 'Driver'], (err, result) => {
+    if (err) {
+      console.error('Error inserting user:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    const userId = result.insertId;
+    const queryDriver = 'INSERT INTO Drivers (user_id, vehicle_type, vehicle_registration_number, availability_status) VALUES (?, ?, ?, ?)';
+    db.query(queryDriver, [userId, vehicle_type, vehicle_registration_number, 'available'], (err) => {
+      if (err) {
+        console.error('Error inserting driver:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      const token = jwt.sign({ user_id: userId, role: 'Driver' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      res.status(201).json({ token, message: 'Driver registered successfully.' });
+    });
+  });
+});
+
+
+// Fetch Driver Details Endpoint
+app.get('/api/drivers/:id', (req, res) => {
+  const driverId = req.params.id;
+  const query = 'SELECT * FROM Drivers WHERE driver_id = ?';
+  db.query(query, [driverId], (err, result) => {
+    if (err) {
+      console.error('Error fetching driver:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+    res.json(result[0]);
+  });
+});
+
+// Handle Ride Request Endpoint
+app.post('/api/rides/request', (req, res) => {
+  const { passenger_id, pickup_location, destination, vehicle_type } = req.body;
+  const query = 'INSERT INTO RideRequests (passenger_id, pickup_location, destination, vehicle_type) VALUES (?, ?, ?, ?)';
+  db.query(query, [passenger_id, pickup_location, destination, vehicle_type], (err, result) => {
+    if (err) {
+      console.error('Error creating ride request:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ request_id: result.insertId });
+  });
+});

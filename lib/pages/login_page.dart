@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
-import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -8,6 +8,37 @@ class LoginPage extends StatelessWidget {
   final ApiService apiService = ApiService();
 
   LoginPage({super.key});
+
+  void _navigateBasedOnRole(BuildContext context, String? role) {
+    if (role == 'Driver') {
+      Navigator.of(context).pushReplacementNamed('/driverHome');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
+  void _showDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (title == "Login Successful") {
+                  // Do nothing here; navigation will be handled in _navigateBasedOnRole
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,27 +91,33 @@ class LoginPage extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+
+                    // Basic validation
+                    if (email.isEmpty || password.isEmpty) {
+                      _showDialog(context, "Input Error", "Email and Password cannot be empty.");
+                      return;
+                    }
+
                     try {
-                      final response = await apiService.login(
-                        emailController.text,
-                        passwordController.text,
-                      );
+                      final response = await apiService.login(email, password);
                       if (response.statusCode == 200) {
                         final data = jsonDecode(response.body);
                         final token = data['token'];
+                        final role = data['role'] ?? 'Passenger';  // Default to 'Passenger' if 'role' is null
 
-                        // Directly navigate to the home screen
-                        Navigator.of(context).pushReplacementNamed('/home');
+                        // Store the token securely (e.g., in SharedPreferences)
+                        // Example: await SharedPreferences.getInstance().then((prefs) => prefs.setString('auth_token', token));
+
+                        // Navigate based on the user's role
+                        _navigateBasedOnRole(context, role);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Login Failed: Invalid credentials.')),
-                        );
+                        _showDialog(context, "Login Failed", "Invalid credentials. Please try again.");
                       }
                     } catch (e) {
                       print('Error: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Connection Failed: Could not connect to server.')),
-                      );
+                      _showDialog(context, "Connection Failed", "Could not connect to server. Please try again later.");
                     }
                   },
                   style: ElevatedButton.styleFrom(

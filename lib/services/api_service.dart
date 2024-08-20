@@ -4,7 +4,7 @@ import 'package:driveby/models/users.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String _baseUrl = 'http://172.18.28.244:3000/api';
+  static const String _baseUrl = 'http://172.18.23.63:3000/api';
 
   // Register method
   Future<http.Response> register(String username, String email, String password) async {

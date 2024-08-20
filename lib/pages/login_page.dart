@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:driveby/services/api_service.dart'; // Make sure to replace `your_project_name` with your actual project name
+import 'package:driveby/services/api_service.dart';
+import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -8,29 +8,6 @@ class LoginPage extends StatelessWidget {
   final ApiService apiService = ApiService();
 
   LoginPage({super.key});
-
-  void _showDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (title == "Login Successful") {
-                  Navigator.of(context).pushNamed('/home');
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,17 +68,19 @@ class LoginPage extends StatelessWidget {
                       if (response.statusCode == 200) {
                         final data = jsonDecode(response.body);
                         final token = data['token'];
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Login Successful')),
-                        );
-                        // Store the token securely (e.g., in SharedPreferences)
-                        Navigator.of(context).pushNamed('/home'); // Navigate to the home screen
+
+                        // Directly navigate to the home screen
+                        Navigator.of(context).pushReplacementNamed('/home');
                       } else {
-                        _showDialog(context, "Login Failed", "Invalid credentials. Please try again.");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Login Failed: Invalid credentials.')),
+                        );
                       }
                     } catch (e) {
                       print('Error: $e');
-                      _showDialog(context, "Connection Failed", "Could not connect to server. Please try again later.");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Connection Failed: Could not connect to server.')),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(

@@ -2,112 +2,123 @@ import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
 import 'package:driveby/models/ride.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false, // This removes the back arrow
-        title: Row(
-          children: [
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hi!',
-                    style: TextStyle(
-                      fontSize: 14.0,
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent going back to the previous screen
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // This removes the back arrow
+          title: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hi!',
+                      style: TextStyle(
+                        fontSize: 14.0,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Welcome back!',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24.0,
+                    Text(
+                      'Welcome back!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24.0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              icon: const CircleAvatar(
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.white),
+              IconButton(
+                icon: const CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, color: Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/profile');
+                },
               ),
-              onPressed: () {
-                Navigator.of(context).pushNamed('/profile');
-              },
-            ),
-          ],
+            ],
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.yellow[700],
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Enjoy your next trip',
-                    style: TextStyle(color: Colors.white, fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/book');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor: Colors.white,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.yellow[700],
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Enjoy your next trip',
+                      style: TextStyle(color: Colors.white, fontSize: 16.0),
                     ),
-                    child: const Text('Book now'),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/book');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.white,
+                      ),
+                      child: const Text('Book now'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildOptionButton(
+                      context,
+                      icon: Icons.local_taxi,
+                      label: 'Taxi & Ride',
+                      route: '/book',
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildOptionButton(
+                      context,
+                      icon: Icons.two_wheeler,
+                      label: '2 Wheels',
+                      route: '/book',
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildOptionButton(
-                    context,
-                    icon: Icons.local_taxi,
-                    label: 'Taxi & Ride',
-                    route: '/book',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildOptionButton(
-                    context,
-                    icon: Icons.two_wheeler,
-                    label: '2 Wheels',
-                    route: '/book',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildSearchBar(),
-            const SizedBox(height: 20),
-            _buildShortcutButton('Home', 'Set home address'),
-            _buildShortcutButton('Work', 'Set work address'),
-            const SizedBox(height: 20),
-            _buildRideHistorySection(),
-          ],
+              const SizedBox(height: 20),
+              _buildSearchBar(context),
+              const SizedBox(height: 20),
+              _buildShortcutButton('Home', 'Set home address'),
+              _buildShortcutButton('Work', 'Set work address'),
+              const SizedBox(height: 20),
+              _buildRideHistorySection(),
+            ],
+          ),
         ),
       ),
     );
@@ -135,17 +146,28 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Where are you going?',
-        prefixIcon: const Icon(Icons.circle, color: Colors.yellow),
-        border: OutlineInputBorder(
+  Widget _buildSearchBar(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Directly navigate to BookPage when the search bar is tapped
+        Navigator.of(context).pushNamed('/book');
+      },
+      child: Container(
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
+          color: Colors.grey[200],
         ),
-        filled: true,
-        fillColor: Colors.grey[200],
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+        child: Row(
+          children: [
+            const Icon(Icons.circle, color: Colors.yellow),
+            const SizedBox(width: 10),
+            Text(
+              'Where are you going?',
+              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }

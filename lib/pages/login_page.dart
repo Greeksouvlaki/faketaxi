@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
+import 'package:driveby/pages/driver_home_page.dart'; // Import the driver home page
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -29,9 +30,6 @@ class LoginPage extends StatelessWidget {
               child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
-                if (title == "Login Successful") {
-                  // Do nothing here; navigation will be handled in _navigateBasedOnRole
-                }
               },
             ),
           ],
@@ -94,7 +92,6 @@ class LoginPage extends StatelessWidget {
                     final email = emailController.text.trim();
                     final password = passwordController.text.trim();
 
-                    // Basic validation
                     if (email.isEmpty || password.isEmpty) {
                       _showDialog(context, "Input Error", "Email and Password cannot be empty.");
                       return;
@@ -105,10 +102,7 @@ class LoginPage extends StatelessWidget {
                       if (response.statusCode == 200) {
                         final data = jsonDecode(response.body);
                         final token = data['token'];
-                        final role = data['role'] ?? 'Passenger';  // Default to 'Passenger' if 'role' is null
-
-                        // Store the token securely (e.g., in SharedPreferences)
-                        // Example: await SharedPreferences.getInstance().then((prefs) => prefs.setString('auth_token', token));
+                        final role = data['role'] ?? 'Passenger';
 
                         // Navigate based on the user's role
                         _navigateBasedOnRole(context, role);

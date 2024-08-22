@@ -6,7 +6,7 @@ import 'package:driveby/models/driver.dart';
 import 'package:driveby/models/ride_request.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://172.18.23.63:3000/api';
+  static const String _baseUrl = 'http://172.18.28.144:3000/api';
 
   // Register method
   Future<http.Response> register(String username, String email, String password) async {

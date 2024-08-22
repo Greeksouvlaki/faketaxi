@@ -5,10 +5,13 @@ class DriverHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Driver Home'),
+        title: Text('Driver Dashboard'),
       ),
       body: Center(
-        child: Text('Welcome, Driver!'),
+        child: Text(
+          'Welcome, Driver!',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

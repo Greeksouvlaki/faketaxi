@@ -6,6 +6,7 @@ import 'pages/home_page.dart';
 import 'pages/book_page.dart';
 import 'pages/navigation_page.dart';
 import 'pages/profile_page.dart';
+import 'pages/driver_home_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/book': (context) => BookPage(),
         '/navigation': (context) => NavigationPage(),
         '/profile': (context) => ProfilePage(),
+        '/driverHome': (context) => DriverHomePage(),
       },
     );
   }

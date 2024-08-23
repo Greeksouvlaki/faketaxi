@@ -343,3 +343,46 @@ app.post('/api/rides/request', (req, res) => {
     res.json({ request_id: result.insertId });
   });
 });
+
+// Fetch Earnings Summary for a Driver
+app.get('/api/drivers/earnings', (req, res) => {
+  const driverId = req.query.driverId;
+  const query = `
+    SELECT 
+      SUM(CASE WHEN DATE(ride_date) = CURDATE() THEN cost ELSE 0 END) AS today,
+      SUM(CASE WHEN WEEK(ride_date) = WEEK(CURDATE()) THEN cost ELSE 0 END) AS thisWeek,
+      SUM(CASE WHEN MONTH(ride_date) = MONTH(CURDATE()) THEN cost ELSE 0 END) AS thisMonth
+    FROM Rides
+    WHERE driver_id = ?`;
+  db.query(query, [driverId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results[0]);
+  });
+});
+
+
+
+// Fetch Current Ride Details
+app.get('/api/drivers/current-ride', (req, res) => {
+  const driverId = req.query.driverId; // Assuming driverId is passed as a query param
+
+  const query = `
+    SELECT Rides.*, Users.username AS passenger 
+    FROM Rides 
+    JOIN Users ON Rides.passenger_id = Users.user_id 
+    WHERE driver_id = ? AND status = 'ongoing'
+  `;
+
+  db.query(query, [driverId], (err, results) => {
+    if (err) {
+      console.error('Error fetching current ride:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No ongoing ride found' });
+    }
+    res.json(results[0]);
+  });
+});

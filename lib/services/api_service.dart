@@ -4,9 +4,11 @@ import 'package:driveby/models/users.dart';
 import 'package:http/http.dart' as http;
 import 'package:driveby/models/driver.dart';
 import 'package:driveby/models/ride_request.dart';
+import 'package:driveby/models/earnings_summary.dart';
+import 'package:driveby/models/current_ride.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://172.18.28.144:3000/api';
+  static const String _baseUrl = 'http://172.22.136.112:3000/api';
 
   // Register method
   Future<http.Response> register(String username, String email, String password) async {
@@ -206,23 +208,6 @@ Future<http.Response> loginDriver(String email, String password) async {
   }
 }
 
-// Fetch Ride Requests
-Future<List<RideRequest>> fetchRideRequests() async {
-  final url = Uri.parse('$_baseUrl/drivers/ride-requests');
-  try {
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => RideRequest.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load ride requests');
-    }
-  } catch (e) {
-    print('Error: $e');
-    rethrow;
-  }
-}
-
 // Accept Ride Request
 Future<http.Response> acceptRideRequest(int requestId, int driverId) async {
   final url = Uri.parse('$_baseUrl/drivers/ride-requests/$requestId/accept');
@@ -297,6 +282,39 @@ Future<http.Response> createRideRequest(int passengerId, String pickupLocation, 
   } catch (e) {
     print('Error: $e');
     rethrow;
+  }
+}
+
+// Fetch Ride Requests
+Future<List<RideRequest>> fetchRideRequests() async {
+  final response = await http.get(Uri.parse('$_baseUrl/drivers/ride-requests'));
+  if (response.statusCode == 200) {
+    List<dynamic> data = jsonDecode(response.body);
+    return data.map((json) => RideRequest.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load ride requests');
+  }
+}
+
+
+// Fetch Earnings Summary
+Future<EarningsSummary> fetchEarningsSummary(int driverId) async {
+  final response = await http.get(Uri.parse('$_baseUrl/drivers/earnings?driverId=$driverId'));
+  if (response.statusCode == 200) {
+    return EarningsSummary.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load earnings summary');
+  }
+}
+
+
+// Fetch Current Ride Details
+Future<CurrentRide> fetchCurrentRide() async {
+  final response = await http.get(Uri.parse('$_baseUrl/driver/current-ride'));
+  if (response.statusCode == 200) {
+    return CurrentRide.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load current ride');
   }
 }
 

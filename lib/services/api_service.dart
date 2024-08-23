@@ -35,37 +35,43 @@ class ApiService {
   }
 
   // Login method
-  Future<http.Response> login(String email, String password) async {
-  final url = Uri.parse('$_baseUrl/users/login');
-  try {
-    // Debugging: Log the email and password
-    print('Attempting login with email: "$email" and password: "$password"');
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = Uri.parse('$_baseUrl/users/login');
+    try {
+      // Debugging: Log the email and password
+      print('Attempting login with email: "$email" and password: "$password"');
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
 
-    // Log the response status and body
-    print('Response Status: ${response.statusCode}');
-    print('Response Body: ${response.body}');
+      // Log the response status and body
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      return response;
-    } else {
-      throw Exception('Failed to login');
+      if (response.statusCode == 200) {
+        // Convert the response body into a Map and return it
+        final data = jsonDecode(response.body);
+        return {
+          'token': data['token'],
+          'role': data['role'],
+          'user_id': data['user_id'],
+        };
+      } else {
+        throw Exception('Failed to login');
+      }
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error: $e');
-    rethrow;
   }
-}
 
 
   // Method to fetch ride history

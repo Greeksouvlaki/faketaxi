@@ -131,22 +131,29 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final response = isDriver
-                        ? await apiService.registerDriver(
-                            usernameController.text,
-                            emailController.text,
-                            passwordController.text,
-                            vehicleTypeController.text,
-                            licensePlateController.text,
-                          )
-                        : await apiService.register(
-                            usernameController.text,
-                            emailController.text,
-                            passwordController.text,
-                          );
-                    if (response.statusCode == 200) {
-                      _showDialog(context, "Registration Successful", "You have successfully registered.");
-                    } else {
+                    try {
+                      final response = isDriver
+                          ? await apiService.registerDriver(
+                              usernameController.text,
+                              emailController.text,
+                              passwordController.text,
+                              vehicleTypeController.text,
+                              licensePlateController.text,
+                            )
+                          : await apiService.register(
+                              usernameController.text,
+                              emailController.text,
+                              passwordController.text,
+                            );
+
+                      // Adjust the condition to check for 200 or 201 status codes
+                      if (response.statusCode == 200 || response.statusCode == 201) {
+                        _showDialog(context, "Registration Successful", "You have successfully registered.");
+                      } else {
+                        _showDialog(context, "Registration Failed", "An error occurred. Please try again.");
+                      }
+                    } catch (e) {
+                      print('Error: $e');
                       _showDialog(context, "Registration Failed", "An error occurred. Please try again.");
                     }
                   },

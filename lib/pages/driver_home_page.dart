@@ -9,8 +9,8 @@ class DriverHomePage extends StatelessWidget {
       ),
       body: Center(
         child: Text(
-          'Welcome, Driver!',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          'Welcome to the Driver Dashboard!',
+          style: TextStyle(fontSize: 24.0),
         ),
       ),
     );

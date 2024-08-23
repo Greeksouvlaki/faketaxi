@@ -74,10 +74,17 @@ app.post('/api/users/login', (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token, user_id: user.user_id });
+    const token = jwt.sign(
+      { id: user.user_id, role: user.role }, // Include role in the token payload
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    // Include role in the response
+    res.json({ token, user_id: user.user_id, role: user.role });
   });
 });
+
 
 
 

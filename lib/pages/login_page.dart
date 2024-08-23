@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
-import 'package:driveby/pages/driver_home_page.dart'; // Import the driver home page
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -30,6 +29,9 @@ class LoginPage extends StatelessWidget {
               child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
+                if (title == "Login Successful") {
+                  // Navigation is handled in _navigateBasedOnRole
+                }
               },
             ),
           ],
@@ -92,19 +94,16 @@ class LoginPage extends StatelessWidget {
                     final email = emailController.text.trim();
                     final password = passwordController.text.trim();
 
+                    // Basic validation
                     if (email.isEmpty || password.isEmpty) {
                       _showDialog(context, "Input Error", "Email and Password cannot be empty.");
                       return;
                     }
 
                     try {
-                      final response = await apiService.login(email, password);
-                      if (response.statusCode == 200) {
-                        final data = jsonDecode(response.body);
-                        final token = data['token'];
-                        final role = data['role'] ?? 'Passenger';
-
-                        // Navigate based on the user's role
+                      final result = await apiService.login(email, password);
+                      if (result.isNotEmpty) {
+                        final role = result['role'];
                         _navigateBasedOnRole(context, role);
                       } else {
                         _showDialog(context, "Login Failed", "Invalid credentials. Please try again.");

@@ -318,5 +318,62 @@ Future<CurrentRide> fetchCurrentRide() async {
   }
 }
 
+// Fetch user's payment methods
+  Future<List<dynamic>> getPaymentMethods(int userId) async {
+    final response = await http.get(Uri.parse('$_baseUrl/api/payment-methods?userId=$userId'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load payment methods');
+    }
+  }
+
+  // Add a new payment method
+  Future<void> addPaymentMethod(int userId, String paymentType, String? cardNumber, String? walletProvider, bool isDefault) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/payment-methods/add'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'payment_type': paymentType,
+        'card_number': cardNumber,
+        'wallet_provider': walletProvider,
+        'is_default': isDefault,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add payment method');
+    }
+  }
+
+  // Update a payment method
+  Future<void> updatePaymentMethod(int paymentMethodId, String paymentType, String? cardNumber, String? walletProvider, bool isDefault) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl/api/payment-methods/update'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'payment_method_id': paymentMethodId,
+        'payment_type': paymentType,
+        'card_number': cardNumber,
+        'wallet_provider': walletProvider,
+        'is_default': isDefault,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update payment method');
+    }
+  }
+
+  // Delete a payment method
+  Future<void> deletePaymentMethod(int paymentMethodId) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/api/payment-methods/delete'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'payment_method_id': paymentMethodId}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete payment method');
+    }
+  }
 
 }

@@ -8,7 +8,7 @@ import 'package:driveby/models/earnings_summary.dart';
 import 'package:driveby/models/current_ride.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://172.22.136.112:3000/api';
+  static const String _baseUrl = 'http://192.168.56.1:3000/api';
 
   // Register method
   Future<http.Response> register(String username, String email, String password) async {

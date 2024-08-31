@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -386,3 +386,53 @@ app.get('/api/drivers/current-ride', (req, res) => {
     res.json(results[0]);
   });
 });
+
+// Fetch user payment methods
+app.get('/api/users/:userId/payment-methods', (req, res) => {
+  const userId = req.params.userId;
+  const query = `
+    SELECT up.user_payment_id, pm.method_name, up.card_number, up.expiry_date, up.wallet_provider 
+    FROM user_payment_methods up 
+    JOIN payment_methods pm ON up.payment_method_id = pm.payment_method_id 
+    WHERE up.user_id = ?`;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching payment methods:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// Add a new payment method
+app.post('/api/users/:userId/payment-methods', (req, res) => {
+  const userId = req.params.userId;
+  const { paymentMethodId, cardNumber, expiryDate, walletProvider } = req.body;
+  const query = `
+    INSERT INTO user_payment_methods (user_id, payment_method_id, card_number, expiry_date, wallet_provider) 
+    VALUES (?, ?, ?, ?, ?)`;
+
+  db.query(query, [userId, paymentMethodId, cardNumber, expiryDate, walletProvider], (err, result) => {
+    if (err) {
+      console.error('Error adding payment method:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ id: result.insertId, message: 'Payment method added successfully' });
+  });
+});
+
+// Delete a user payment method
+app.delete('/api/users/:userId/payment-methods/:paymentId', (req, res) => {
+  const { userId, paymentId } = req.params;
+  const query = 'DELETE FROM user_payment_methods WHERE user_payment_id = ? AND user_id = ?';
+
+  db.query(query, [paymentId, userId], (err, result) => {
+    if (err) {
+      console.error('Error deleting payment method:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'Payment method deleted successfully' });
+  });
+});
+

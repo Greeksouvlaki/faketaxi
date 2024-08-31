@@ -1,8 +1,10 @@
+import 'package:driveby/pages/AddPaymentMethodPage.dart';
 import 'package:flutter/material.dart';
 import 'package:driveby/services/api_service.dart';
 import 'package:driveby/models/users.dart';
 import 'package:driveby/pages/EditProfilePage.dart';
 import 'package:driveby/pages/ChangePasswordPage.dart';
+import 'package:driveby/pages/AddPaymentMethodPage.dart'; // Import the new payment methods page
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -11,7 +13,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late Future<User> _profile;
-  final int userId = 4; // Hardcoded userId
+  final int userId = 17; // Hardcoded userId
 
   @override
   void initState() {
@@ -65,9 +67,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 ListTile(
                   leading: Icon(Icons.edit),
                   title: Text('Edit Profile'),
-                  onTap: () async{
+                  onTap: () async {
                     User user = await _profile;
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditProfilePage(user: user)));
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => EditProfilePage(user: user)));
                     // Handle profile editing
                   },
                 ),
@@ -75,8 +78,20 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: Icon(Icons.lock),
                   title: Text('Change Password'),
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChangePasswordPage(userId: userId)));
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ChangePasswordPage(userId: userId)));
                     // Handle password change
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.payment),
+                  title: Text('Manage Payment Methods'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => AddPaymentMethodPage(userId: userId),
+                      ),
+                    );
                   },
                 ),
                 ListTile(

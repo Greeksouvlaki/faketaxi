@@ -4,6 +4,8 @@ import 'package:driveby/models/users.dart';
 import 'package:http/http.dart' as http;
 import 'package:driveby/models/driver.dart';
 import 'package:driveby/models/ride_request.dart';
+import 'package:driveby/models/earnings_summary.dart';
+import 'package:driveby/models/current_ride.dart';
 
 class ApiService {
   static const String _baseUrl = 'https://6e5d-109-242-139-139.ngrok-free.app/api';
@@ -35,37 +37,43 @@ class ApiService {
   }
 
   // Login method
-  Future<http.Response> login(String email, String password) async {
-  final url = Uri.parse('$_baseUrl/users/login');
-  try {
-    // Debugging: Log the email and password
-    print('Attempting login with email: "$email" and password: "$password"');
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = Uri.parse('$_baseUrl/users/login');
+    try {
+      // Debugging: Log the email and password
+      print('Attempting login with email: "$email" and password: "$password"');
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
 
-    // Log the response status and body
-    print('Response Status: ${response.statusCode}');
-    print('Response Body: ${response.body}');
+      // Log the response status and body
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      return response;
-    } else {
-      throw Exception('Failed to login');
+      if (response.statusCode == 200) {
+        // Convert the response body into a Map and return it
+        final data = jsonDecode(response.body);
+        return {
+          'token': data['token'],
+          'role': data['role'],
+          'user_id': data['user_id'],
+        };
+      } else {
+        throw Exception('Failed to login');
+      }
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error: $e');
-    rethrow;
   }
-}
 
 
   // Method to fetch ride history
@@ -200,23 +208,6 @@ Future<http.Response> loginDriver(String email, String password) async {
   }
 }
 
-// Fetch Ride Requests
-Future<List<RideRequest>> fetchRideRequests() async {
-  final url = Uri.parse('$_baseUrl/drivers/ride-requests');
-  try {
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => RideRequest.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load ride requests');
-    }
-  } catch (e) {
-    print('Error: $e');
-    rethrow;
-  }
-}
-
 // Accept Ride Request
 Future<http.Response> acceptRideRequest(int requestId, int driverId) async {
   final url = Uri.parse('$_baseUrl/drivers/ride-requests/$requestId/accept');
@@ -294,5 +285,96 @@ Future<http.Response> createRideRequest(int passengerId, String pickupLocation, 
   }
 }
 
+// Fetch Ride Requests
+Future<List<RideRequest>> fetchRideRequests() async {
+  final response = await http.get(Uri.parse('$_baseUrl/drivers/ride-requests'));
+  if (response.statusCode == 200) {
+    List<dynamic> data = jsonDecode(response.body);
+    return data.map((json) => RideRequest.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load ride requests');
+  }
+}
+
+
+// Fetch Earnings Summary
+Future<EarningsSummary> fetchEarningsSummary(int driverId) async {
+  final response = await http.get(Uri.parse('$_baseUrl/drivers/earnings?driverId=$driverId'));
+  if (response.statusCode == 200) {
+    return EarningsSummary.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load earnings summary');
+  }
+}
+
+
+// Fetch Current Ride Details
+Future<CurrentRide> fetchCurrentRide() async {
+  final response = await http.get(Uri.parse('$_baseUrl/driver/current-ride'));
+  if (response.statusCode == 200) {
+    return CurrentRide.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load current ride');
+  }
+}
+
+// Fetch user's payment methods
+Future<List<dynamic>> getPaymentMethods(int userId) async {
+  final response = await http.get(Uri.parse('$_baseUrl/api/users/$userId/payment-methods'));  // Update API endpoint here
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to load payment methods');
+  }
+}
+
+    // Add a new payment method
+  Future<void> addPaymentMethod(int userId, int paymentMethodId, String? cardNumber, String? expiryDate, String? walletProvider) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/users/$userId/payment-methods'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'paymentMethodId': paymentMethodId,
+        'cardNumber': cardNumber,
+        'expiryDate': expiryDate,
+        'walletProvider': walletProvider,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add payment method');
+    }
+  }
+
+
+  // Update a payment method
+  Future<void> updatePaymentMethod(int paymentMethodId, String paymentType, String? cardNumber, String? walletProvider, bool isDefault) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl/api/payment-methods/update'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'payment_method_id': paymentMethodId,
+        'payment_type': paymentType,
+        'card_number': cardNumber,
+        'wallet_provider': walletProvider,
+        'is_default': isDefault,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update payment method');
+    }
+  }
+
+  // Delete a payment method
+  Future<void> deletePaymentMethod(int paymentMethodId) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/api/payment-methods/delete'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'payment_method_id': paymentMethodId}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete payment method');
+    }
+  }
 
 }

@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -74,10 +74,17 @@ app.post('/api/users/login', (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token, user_id: user.user_id });
+    const token = jwt.sign(
+      { id: user.user_id, role: user.role }, // Include role in the token payload
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    // Include role in the response
+    res.json({ token, user_id: user.user_id, role: user.role });
   });
 });
+
 
 
 
@@ -336,3 +343,96 @@ app.post('/api/rides/request', (req, res) => {
     res.json({ request_id: result.insertId });
   });
 });
+
+// Fetch Earnings Summary for a Driver
+app.get('/api/drivers/earnings', (req, res) => {
+  const driverId = req.query.driverId;
+  const query = `
+    SELECT 
+      SUM(CASE WHEN DATE(ride_date) = CURDATE() THEN cost ELSE 0 END) AS today,
+      SUM(CASE WHEN WEEK(ride_date) = WEEK(CURDATE()) THEN cost ELSE 0 END) AS thisWeek,
+      SUM(CASE WHEN MONTH(ride_date) = MONTH(CURDATE()) THEN cost ELSE 0 END) AS thisMonth
+    FROM Rides
+    WHERE driver_id = ?`;
+  db.query(query, [driverId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results[0]);
+  });
+});
+
+
+
+// Fetch Current Ride Details
+app.get('/api/drivers/current-ride', (req, res) => {
+  const driverId = req.query.driverId; // Assuming driverId is passed as a query param
+
+  const query = `
+    SELECT Rides.*, Users.username AS passenger 
+    FROM Rides 
+    JOIN Users ON Rides.passenger_id = Users.user_id 
+    WHERE driver_id = ? AND status = 'ongoing'
+  `;
+
+  db.query(query, [driverId], (err, results) => {
+    if (err) {
+      console.error('Error fetching current ride:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No ongoing ride found' });
+    }
+    res.json(results[0]);
+  });
+});
+
+// Fetch user payment methods
+app.get('/api/users/:userId/payment-methods', (req, res) => {
+  const userId = req.params.userId;
+  const query = `
+    SELECT up.user_payment_id, pm.method_name, up.card_number, up.expiry_date, up.wallet_provider 
+    FROM user_payment_methods up 
+    JOIN payment_methods pm ON up.payment_method_id = pm.payment_method_id 
+    WHERE up.user_id = ?`;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching payment methods:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// Add a new payment method
+app.post('/api/users/:userId/payment-methods', (req, res) => {
+  const userId = req.params.userId;
+  const { paymentMethodId, cardNumber, expiryDate, walletProvider } = req.body;
+  const query = `
+    INSERT INTO user_payment_methods (user_id, payment_method_id, card_number, expiry_date, wallet_provider) 
+    VALUES (?, ?, ?, ?, ?)`;
+
+  db.query(query, [userId, paymentMethodId, cardNumber, expiryDate, walletProvider], (err, result) => {
+    if (err) {
+      console.error('Error adding payment method:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ id: result.insertId, message: 'Payment method added successfully' });
+  });
+});
+
+// Delete a user payment method
+app.delete('/api/users/:userId/payment-methods/:paymentId', (req, res) => {
+  const { userId, paymentId } = req.params;
+  const query = 'DELETE FROM user_payment_methods WHERE user_payment_id = ? AND user_id = ?';
+
+  db.query(query, [paymentId, userId], (err, result) => {
+    if (err) {
+      console.error('Error deleting payment method:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: 'Payment method deleted successfully' });
+  });
+});
+

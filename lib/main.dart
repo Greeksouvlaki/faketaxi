@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         '/book': (context) => BookPage(),
         '/navigation': (context) => NavigationPage(),
         '/profile': (context) => ProfilePage(),
-        '/driverHome': (context) => DriverHomePage(),
+        '/driverHome': (context) => DriverHomePage(), 
       },
     );
   }

@@ -319,32 +319,33 @@ Future<CurrentRide> fetchCurrentRide() async {
 }
 
 // Fetch user's payment methods
-  Future<List<dynamic>> getPaymentMethods(int userId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/api/payment-methods?userId=$userId'));
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load payment methods');
-    }
+Future<List<dynamic>> getPaymentMethods(int userId) async {
+  final response = await http.get(Uri.parse('$_baseUrl/api/users/$userId/payment-methods'));  // Update API endpoint here
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to load payment methods');
   }
+}
 
-  // Add a new payment method
-  Future<void> addPaymentMethod(int userId, String paymentType, String? cardNumber, String? walletProvider, bool isDefault) async {
+    // Add a new payment method
+  Future<void> addPaymentMethod(int userId, int paymentMethodId, String? cardNumber, String? expiryDate, String? walletProvider) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/api/payment-methods/add'),
+      Uri.parse('$_baseUrl/api/users/$userId/payment-methods'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'user_id': userId,
-        'payment_type': paymentType,
-        'card_number': cardNumber,
-        'wallet_provider': walletProvider,
-        'is_default': isDefault,
+        'paymentMethodId': paymentMethodId,
+        'cardNumber': cardNumber,
+        'expiryDate': expiryDate,
+        'walletProvider': walletProvider,
       }),
     );
+
     if (response.statusCode != 200) {
       throw Exception('Failed to add payment method');
     }
   }
+
 
   // Update a payment method
   Future<void> updatePaymentMethod(int paymentMethodId, String paymentType, String? cardNumber, String? walletProvider, bool isDefault) async {

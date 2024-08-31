@@ -13,7 +13,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late Future<User> _profile;
-  final int userId = 4; // Hardcoded userId
+  final int userId = 17; // Hardcoded userId
 
   @override
   void initState() {

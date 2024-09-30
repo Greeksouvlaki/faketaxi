@@ -15,7 +15,7 @@ class Ride {
     return Ride(
       startLocation: json['start_location'],
       endLocation: json['end_location'],
-      cost: json['cost'].toDouble(),
+      cost: double.parse(json['cost'].toString()),
       status: json['status'],
     );
   }

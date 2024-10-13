@@ -4,11 +4,13 @@ const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 
 dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 // MySQL connection
 const db = mysql.createConnection({
@@ -26,7 +28,6 @@ db.connect(err => {
   console.log('Connected to MySQL');
 });
 
-// Root route
 // Root route
 app.get('/', (req, res) => {
   res.send('Welcome to the API');

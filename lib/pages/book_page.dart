@@ -13,7 +13,6 @@ class _BookPageState extends State<BookPage> {
   final MapController _mapController = MapController();
   LatLng? _pickupLocation;
   LatLng? _destinationLocation;
-  double _distance = 0.0;
   List<LatLng> _routePoints = [];
   TextEditingController _startController = TextEditingController();
   TextEditingController _destinationController = TextEditingController();
@@ -34,21 +33,21 @@ class _BookPageState extends State<BookPage> {
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
                     // Container for the search boxes
                     Container(
-                      padding: const EdgeInsets.all(8.0), // Reduced padding
+                      padding: const EdgeInsets.all(4.0), // Reduced padding
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15.0),
+                        borderRadius: BorderRadius.circular(20.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: const Color.fromARGB(255, 211, 211, 211).withOpacity(0.5),
                             spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: Offset(0, 3),
+                            blurRadius: 10,
+                            offset: Offset(0, 6),
                           ),
                         ],
                       ),
@@ -57,6 +56,7 @@ class _BookPageState extends State<BookPage> {
                           // Starting Location
                           Row(
                             children: [
+                              const SizedBox(width: 15),
                               Container(
                                 width: 10,
                                 height: 10,
@@ -65,7 +65,7 @@ class _BookPageState extends State<BookPage> {
                                   shape: BoxShape.circle,
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 20),
                               Expanded(
                                 child: TextField(
                                   controller: _startController,
@@ -80,10 +80,18 @@ class _BookPageState extends State<BookPage> {
                               ),
                             ],
                           ),
-                          Divider(height: 1), // Reduced height
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 15),
+                            child: Divider(
+                              height: 0.2,
+                              color: Color.fromARGB(255, 228, 228, 228),
+                              thickness: 1.0,
+                            ), // Reduced height
+                          ),
                           // Destination Location
                           Row(
                             children: [
+                              const SizedBox(width: 15),
                               Container(
                                 width: 10,
                                 height: 10,
@@ -92,7 +100,7 @@ class _BookPageState extends State<BookPage> {
                                   shape: BoxShape.circle,
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 20),
                               Expanded(
                                 child: TextField(
                                   controller: _destinationController,
@@ -119,7 +127,7 @@ class _BookPageState extends State<BookPage> {
                           itemBuilder: (context, index) {
                             final result = _searchResults[index];
                             return ListTile(
-                              title: Text(result['display_name']),
+                              title: Text(result['place_name']),
                               onTap: () {
                                 _onLocationSelected(result['lat'], result['lon']);
                               },
@@ -127,11 +135,6 @@ class _BookPageState extends State<BookPage> {
                           },
                         ),
                       ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Distance: ${_distance.toStringAsFixed(2)} km',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
                   ],
                 ),
               ),
@@ -160,7 +163,7 @@ class _BookPageState extends State<BookPage> {
                         polylines: [
                           Polyline(
                             points: _routePoints,
-                            color: Colors.blue,
+                            color: Colors.black,
                             strokeWidth: 4.0,
                           ),
                         ],
@@ -193,7 +196,7 @@ class _BookPageState extends State<BookPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
                 ),
-                minimumSize: Size(double.infinity, 50), // Make it full width
+                minimumSize: Size(double.infinity, 75), // Make it full width
               ),
               child: Text('Request a Ride', style: TextStyle(fontSize: 18)),
             ),
@@ -203,24 +206,41 @@ class _BookPageState extends State<BookPage> {
     );
   }
 
-  void _handleTap(LatLng latLng) {
+  void _handleTap(LatLng latLng) async {
+    final address = await _getAddressFromLatLng(latLng);
     setState(() {
       if (_pickupLocation == null) {
         _pickupLocation = latLng;
-        _startController.text = '${latLng.latitude}, ${latLng.longitude}';
+        _startController.text = address; // Set actual address
       } else if (_destinationLocation == null) {
         _destinationLocation = latLng;
-        _destinationController.text = '${latLng.latitude}, ${latLng.longitude}';
-        _calculateDistance();
+        _destinationController.text = address; // Set actual address
         _fetchRoute();
       } else {
         _pickupLocation = latLng;
         _destinationLocation = null;
-        _distance = 0.0;
         _routePoints.clear();
         _destinationController.clear();
       }
     });
+  }
+
+  Future<String> _getAddressFromLatLng(LatLng latLng) async {
+    final url = Uri.parse(
+      'https://api.mapbox.com/geocoding/v5/mapbox.places/${latLng.longitude},${latLng.latitude}.json?access_token=pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ'
+    );
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['features'].isNotEmpty) {
+        return data['features'][0]['place_name']; // Get the formatted address
+      } else {
+        return 'Unknown location';
+      }
+    } else {
+      throw Exception('Failed to load address');
+    }
   }
 
   List<Marker> _buildMarkers() {
@@ -231,7 +251,7 @@ class _BookPageState extends State<BookPage> {
           point: _pickupLocation!,
           width: 80.0,
           height: 80.0,
-          child: const Icon(Icons.location_on, color: Colors.green),
+          child: const Icon(Icons.location_on, color: Colors.black), // Changed color to black
         ),
       );
     }
@@ -246,17 +266,6 @@ class _BookPageState extends State<BookPage> {
       );
     }
     return markers;
-  }
-
-  void _calculateDistance() {
-    final Distance distance = Distance();
-    setState(() {
-      _distance = distance.as(
-        LengthUnit.Kilometer,
-        _pickupLocation!,
-        _destinationLocation!,
-      );
-    });
   }
 
   Future<void> _fetchRoute() async {
@@ -295,29 +304,34 @@ class _BookPageState extends State<BookPage> {
   }
 
   Future<List<Map<String, dynamic>>> searchLocation(String query) async {
-    final url = Uri.parse('https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1');
+    final url = Uri.parse('https://api.mapbox.com/geocoding/v5/mapbox.places/$query.json?access_token=pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ');
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data['features'].map((item) => {
+        'place_name': item['place_name'],
+        'lat': item['geometry']['coordinates'][1].toString(),
+        'lon': item['geometry']['coordinates'][0].toString(),
+      }));
     } else {
       throw Exception('Failed to load location data');
     }
   }
 
-  void _onLocationSelected(String lat, String lon) {
+  void _onLocationSelected(String lat, String lon) async {
     final latLng = LatLng(double.parse(lat), double.parse(lon));
-    if (_isSearchingStart) {
-      _pickupLocation = latLng;
-      _startController.text = '${latLng.latitude}, ${latLng.longitude}';
-      _mapController.move(latLng, 15.0);
-    } else {
-      _destinationLocation = latLng;
-      _destinationController.text = '${latLng.latitude}, ${latLng.longitude}';
-      _mapController.move(latLng, 15.0);
-      _calculateDistance();
-      _fetchRoute();
-    }
+    final address = await _getAddressFromLatLng(latLng);
     setState(() {
+      if (_isSearchingStart) {
+        _pickupLocation = latLng;
+        _startController.text = address; // Set actual address
+        _mapController.move(latLng, 15.0);
+      } else {
+        _destinationLocation = latLng;
+        _destinationController.text = address; // Set actual address
+        _mapController.move(latLng, 15.0);
+        _fetchRoute();
+      }
       _searchResults = [];
     });
   }

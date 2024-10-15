@@ -13,13 +13,16 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Your public access token
+    String accessToken = "pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ";
+
     return MaterialApp(
       title: 'Taxi App',
       theme: ThemeData(
         primarySwatch: Colors.yellow,
         scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
         textTheme: TextTheme(
-           bodyLarge: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+          bodyLarge: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
           bodyMedium: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
         ),
       ),
@@ -31,7 +34,7 @@ class MyApp extends StatelessWidget {
         '/book': (context) => BookPage(),
         '/navigation': (context) => NavigationPage(),
         '/profile': (context) => ProfilePage(),
-        '/driverHome': (context) => DriverHomePage(), 
+        '/driverHome': (context) => DriverHomePage(),
       },
     );
   }

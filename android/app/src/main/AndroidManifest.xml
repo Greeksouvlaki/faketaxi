@@ -5,6 +5,11 @@
         android:label="driveby"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+      android:name="com.mapbox.token"
+      android:value="pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

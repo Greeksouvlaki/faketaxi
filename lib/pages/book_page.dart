@@ -145,7 +145,11 @@ class _BookPageState extends State<BookPage> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate: "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
+                      additionalOptions: {
+                        'accessToken': 'pk.eyJ1IjoiZ3JlZWtzb3V2bGFraSIsImEiOiJjbHlveGFkdzEwbGlsMmtzNTRybnlsZ2FhIn0.VfKArqX5m9V3Flffhb93oQ',
+                        'id': 'mapbox/streets-v11',
+                      },
                       subdomains: ['a', 'b', 'c'],
                     ),
                     MarkerLayer(

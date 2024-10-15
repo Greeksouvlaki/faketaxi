@@ -8,7 +8,7 @@ import 'package:driveby/models/earnings_summary.dart';
 import 'package:driveby/models/current_ride.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://08b8-188-73-237-143.ngrok-free.app/api'; // αλλάζει κάθε φορά που ξεκινάμε το ngrok
+  static const String _baseUrl = 'https://8271-188-73-237-143.ngrok-free.app/api'; // αλλάζει κάθε φορά που ξεκινάμε το ngrok
 
   // Register method
   Future<http.Response> register(String username, String email, String password) async {
